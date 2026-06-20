@@ -64,6 +64,3 @@ Comparativ cu soluțiile clasice bazate pe SNMP (interval de interogare de 5 min
 
 
 
-## Licență
-
-Acest proiect este disponibil sub licența MIT.
