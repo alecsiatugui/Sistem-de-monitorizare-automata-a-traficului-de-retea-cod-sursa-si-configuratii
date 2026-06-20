@@ -1,0 +1,156 @@
+R1 – CENTRAL ROUTER
+enable
+conf t
+hostname R1
+interface GigabitEthernet1
+ description TO-R2
+ ip address 10.0.1.1 255.255.255.252
+ no shutdown
+interface GigabitEthernet2
+ description TO-R3
+ ip address 10.0.2.1 255.255.255.252
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+ip route 172.16.100.0 255.255.255.0 10.0.2.2
+ip route 192.168.10.0 255.255.255.0 10.0.1.2
+ip route 192.168.20.0 255.255.255.0 10.0.1.2
+ip route 192.168.30.0 255.255.255.0 10.0.1.2
+username cisco privilege 15 secret cisco
+ip domain-name lab.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+netconf-yang
+copy running-config startup-config
+
+R2 – LAN ACCESS ROUTER
+enable
+conf t
+hostname R2
+interface GigabitEthernet3
+ description TO-R1
+ ip address 10.0.1.2 255.255.255.252
+ no shutdown
+interface GigabitEthernet1
+ description LAN
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+interface GigabitEthernet2
+ no shutdown
+interface GigabitEthernet2.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+interface GigabitEthernet2.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+username cisco privilege 15 secret cisco
+ip domain-name lab.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+netconf-yang
+copy running-config startup-config
+
+R3 – DMZ ACCESS ROUTER
+enable
+conf t
+hostname R3
+interface GigabitEthernet1
+ description TO-R1
+ ip address 10.0.2.2 255.255.255.252
+ no shutdown
+interface GigabitEthernet2
+ description TO-DMZ
+ ip address 172.16.50.1 255.255.255.0
+ no shutdown
+interface GigabitEthernet3
+ description TO-File_Server
+ ip address 172.16.51.1 255.255.255.0
+ no shutdown
+interface GigabitEthernet4
+ description MNGMT-SERVER
+ ip address 172.16.100.1 255.255.255.0
+ no shutdown
+ip route 10.0.1.0 255.255.255.252 10.0.2.1
+ip route 192.168.10.0 255.255.255.0 10.0.2.1
+ip route 192.168.20.0 255.255.255.0 10.0.2.1
+ip route 192.168.30.0 255.255.255.0 10.0.2.1
+username cisco privilege 15 secret cisco
+ip domain-name lab.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+netconf-yang
+copy running-config startup-config
+
+SWITCH-L2-1 – LAN USER ACCESS SWITCH
+enable
+conf t
+interface e0/0
+ no shutdown
+ switchport mode access
+interface e0/1
+ no shutdown
+ switchport mode access
+ spanning-tree portfast
+interface e0/2
+ no shutdown
+ switchport mode access
+ spanning-tree portfast
+end
+write memory
+
+SWITCH-L2-2 – VLAN ACCESS SWITCH
+enable
+conf t
+vlan 20
+ name USERS_VLAN20
+vlan 30
+ name USERS_VLAN30
+interface e0/0
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ no shutdown
+interface e0/1
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+interface e0/2
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+vlan 99
+ name MANAGEMENT
+interface vlan 99
+ ip address 192.168.99.2 255.255.255.0
+ no shutdown
+ip default-gateway 192.168.99.1
+end
+write memory
+
+TERMINAL STATIONS (USER1 – USER4)
+  USER1 (VPCS):
+    ip 192.168.10.10/24 192.168.10.1
+  USER2 (VPCS):
+    ip 192.168.10.11/24 192.168.10.1
+  USER3 (VPCS):
+    ip 192.168.20.10/24 192.168.20.1
+  USER4 (VPCS):
+    ip 192.168.30.10/24 192.168.30.1
+
+SERVER-WEB
+sudo ip addr add 172.16.50.10/24 dev eth0
+sudo ip route add default via 172.16.50.1
+ echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+ Hostname:  SERVER-WEB
+ Domain:    web.proiect.local
+
+SERVER-FILES
+sudo ip addr add 172.16.51.20/24 dev eth0
+ sudo ip route add default via 172.16.51.1
+  echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+  Hostname:  SERVER-FILES
+  Domain:    files.proiect.local
+
+MANAGEMENT STATION
+  sudo ip addr add 172.16.100.10/24 dev ens3
+  sudo ip route add default via 172.16.100.1
+  echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+  sudo ip route add 10.0.1.0/24 via 172.16.100.1 dev ens3

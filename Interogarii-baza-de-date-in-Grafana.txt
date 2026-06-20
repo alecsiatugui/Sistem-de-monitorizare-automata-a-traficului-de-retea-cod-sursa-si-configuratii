@@ -1,0 +1,37 @@
+Interogările utilizate în Grafana pentru vizualizarea datelor colectate
+
+1. Total Inbound Traffic (bps)
+SELECT mean("download")
+FROM "trafic_retea"
+WHERE $timeFilter
+GROUP BY time($__interval), "dispozitiv" fill(linear)
+
+2. Total Outbound Traffic (bps)
+SELECT mean("upload")
+FROM "trafic_retea"
+WHERE $timeFilter
+GROUP BY time($__interval), "dispozitiv" fill(linear)
+
+3. R1 Inbound Traffic by Interface
+SELECT mean("download")
+FROM "trafic_retea"
+WHERE "dispozitiv" = 'R1' AND "upload" > 0 AND $timeFilter
+GROUP BY time($__interval), "interfata" fill(linear)
+
+4. R1 Outbound Traffic by Interface
+SELECT mean("upload")
+FROM "trafic_retea"
+WHERE "dispozitiv" = 'R1' AND "download" > 0 AND $timeFilter
+GROUP BY time($__interval), "interfata" fill(linear)
+
+5. Gi1 R1 Inbound Traffic
+SELECT mean("download")
+FROM "trafic_retea"
+WHERE "dispozitiv" = 'R1' AND "interfata" = 'GigabitEthernet1' AND $timeFilter
+GROUP BY time($__interval), "interfata" fill(linear)
+
+6. Gi1 R1 Outbound Traffic
+SELECT mean("upload")
+FROM "trafic_retea"
+WHERE "dispozitiv" = 'R1' AND "interfata" = 'GigabitEthernet1' AND $timeFilter
+GROUP BY time($__interval), "interfata" fill(linear)
