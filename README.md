@@ -1,4 +1,4 @@
-# Sistem-de-monitorizare-automata-a-traficului-de-retea-cod-sursa-si-configuratii
+
 # Automatizarea procesului de monitorizare a traficului de date într-o rețea de calculatoare
 
 ## Despre proiect
